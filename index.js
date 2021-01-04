@@ -98,7 +98,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.ambilight_power_on_body = JSON.stringify({"value":{"Nodeid":100,"Controllable":true,"Available":true,"data":{"activenode_id":120}}}); // Follow Video 
 	this.ambilight_power_off_body = JSON.stringify({"value":{"Nodeid":100,"Controllable":true,"Available":true,"data":{"activenode_id":110}}}); // Off
 
-	// HUE
+	// HUE (SHARE AMBILIGHT_CONFIG_URL)
 	this.hue_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/huelamp/power";
 	this.hue_on_body = JSON.stringify({"power":"On"});
 	this.hue_off_body = JSON.stringify({"power":"Off"});
