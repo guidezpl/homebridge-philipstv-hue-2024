@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-philipstv-enhanced",
+  "name": "homebridge-philipstv-hue",
   "version": "0.2.4",
   "description": "Homebridge module for Philips TV",
   "main": "index.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/arkku/homebridge-philipstv-enhanced.git"
+    "url": "git+https://github.com/bmccruz/homebridge-philipstv-hue.git"
   },
   "dependencies": {
     "polling-to-event": "^2.0.2",
