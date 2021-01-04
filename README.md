@@ -1,5 +1,5 @@
 # homebridge-philipstv-enhanced
-Homebridge module for Philips TV (with JointSpace enabled) with Power on/off, Sound, Ambilight and source input control
+Homebridge module for Philips TV (with JointSpace enabled) with Power on/off, Sound, Ambilight with Hue On/Off and source input control
 
 # Description
 
@@ -17,15 +17,17 @@ widget (including volume control by pressing the physical volume up/down
 buttons). Other modifications include ChromeCast-based power-on option, and
 support for an external "etherwake" executable.
 
+Modified by bmccruz to add support to Ambilight+Hue for Saphi TVs.
+
 # Installation
 
 1. Install homebridge using: `npm install -g homebridge`
-2. Install this plugin using: `npm install -g homebridge-philipstv-enhanced`
+2. Install this plugin using: `npm install -g homebridge-philipstv-hue`
 3. Update your configuration file. See the sample below.
 
 If you do not wish to install from npm (e.g, because you are using a fork), you
 may also clone the git repository into some directory like
-`/usr/local/homebridge/plugins/homebridge-philipstv-enhanced` and then specify the
+`/usr/local/homebridge/plugins/homebridge-philipstv-hue` and then specify the
 plugin directory as an option (`-P /usr/local/homebridge/plugins`, typically
 using `HOMEBRIDGE_OPTS` in `/etc/default/homebridge`).
 
@@ -43,6 +45,7 @@ Example accessory config (needs to be added to the Homebridge `config.json`):
         "model_year": 2018,
         "has_ssl": true,
         "has_ambilight": true,
+        "has_hue": true,
         "has_chromecast": true,
         "hide_input_selector": false,
         "info_button": "Source",
