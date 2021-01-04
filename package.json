@@ -1,6 +1,6 @@
 {
   "name": "homebridge-philipstv-hue",
-  "version": "0.2.4",
+  "version": "0.1.0",
   "description": "Homebridge module for Philips TV",
   "main": "index.js",
   "repository": {
@@ -22,10 +22,10 @@
     "node": ">=0.12.0",
     "homebridge": ">=0.4.46"
   },
-  "author": "arkku",
+  "author": "bmccruz",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/arkku/homebridge-philipstv-enhanced/issues"
+    "url": "https://github.com/bmccruz/homebridge-philipstv-hue/issues"
   },
-  "homepage": "https://github.com/arkku/homebridge-philipstv-enhanced#readme"
+  "homepage": "https://github.com/bmccruz/homebridge-philipstv-hue#readme"
 }
