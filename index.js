@@ -1295,7 +1295,7 @@ HttpStatusAccessory.prototype = {
 
 			this.enabled_services.push(this.ambilightService);
 			
-			if (this.has_hue {
+			if (this.has_hue) {
 			    this.hueService = new Service.Lightbulb(this.name + " Hue", '0e');
 			
 				this.hueService
