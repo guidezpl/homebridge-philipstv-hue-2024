@@ -30,6 +30,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.model_year_nr = parseInt(this.model_year);
 	this.set_attempt = 0;
 	this.has_ambilight = config["has_ambilight"] || false;
+	this.has_hue = config["has_hue"] || false;
 	this.has_ssl = config["has_ssl"] || false;
 	this.has_input_selector = !(config["hide_input_selector"] || false);
 	this.etherwake_exec = config["etherwake_exec"];
@@ -96,6 +97,11 @@ function HttpStatusAccessory(log, config, api) {
 	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/update";
 	this.ambilight_power_on_body = JSON.stringify({"value":{"Nodeid":100,"Controllable":true,"Available":true,"data":{"activenode_id":120}}}); // Follow Video 
 	this.ambilight_power_off_body = JSON.stringify({"value":{"Nodeid":100,"Controllable":true,"Available":true,"data":{"activenode_id":110}}}); // Off
+
+	// HUE
+	this.hue_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/huelamp/power";
+	this.hue_on_body = JSON.stringify({"power":"On"}); // On
+	this.hue_off_body = JSON.stringify({"power":"Off"}); // Off
 
 	this.chromecast_url = this.has_chromecast ? ("http://" + this.ip_address + ":8080/apps/ChromeCast") : null;
 
@@ -192,7 +198,27 @@ function HttpStatusAccessory(log, config, api) {
 				if (that.ambilightService) {
 					that.ambilightService.getCharacteristic(Characteristic.Brightness).setValue(that.state_ambilight_brightness, null, "statuspoll");
 				}
-			});			
+			});
+			
+			
+			if (this.has_hue) {
+				var statusemitter_hue = pollingtoevent(function(done) {
+					that.getHueState(function(error, response) {
+						done(error, response, that.set_attempt);
+					}, "statuspoll");
+				}, {
+					longpolling: true,
+					interval: that.interval * 1000,
+					longpollEventName: "statuspoll_hue"
+				});
+
+				statusemitter_hue.on("statuspoll_hue", function(data) {
+					that.state_hue = data;
+					if (that.hueService) {
+						that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
+					}
+				});
+			}
 			
 			
 		}
@@ -645,7 +671,111 @@ HttpStatusAccessory.prototype = {
 			callback(null, that.state_ambilightLevel);
 		}.bind(this));
 	},
+	
+	// HUE FUNCTIONS
+	setHueStateLoop: function(nCount, url, body, hueState, callback) {
+		var that = this;
 
+		that.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
+			if (error) {
+				if (nCount > 0) {
+					that.log('setHueStateLoop - attempt, attempt id: ', nCount - 1);
+					that.setHueStateLoop(nCount - 1, url, body, hueState, function(err, state) {
+						callback(err, state);
+					});
+				} else {
+					that.log('setHueStateLoop - failed: %s', error.message);
+					hueState = false;
+					callback(new Error("HTTP attempt failed"), hueState);
+				}
+			} else {
+				that.log('setHueStateLoop - succeeded - current state: %s', hueState);
+				callback(null, hueState);
+			}
+		});
+	},
+
+	setHueState: function(hueState, callback, context) {
+		this.log.debug("Entering setHueState with context: %s and requested value: %s", context, hueState);
+		var url;
+		var body;
+		var that = this;
+
+		//if context is statuspoll, then we need to ensure that we do not set the actual value
+		if (context && context == "statuspoll") {
+			callback(null, hueState);
+			return;
+		}
+
+		this.set_attempt = this.set_attempt + 1;
+
+		if (hueState) {
+			url = this.hue_config_url;
+			body = this.hue_on_body;
+			this.log("setHueState - setting state to on");
+		} else {
+			url = this.hue_config_url;
+			body = this.hue_off_body;
+			this.log("setHueState - setting state to off");
+		}
+
+		that.setHueStateLoop(0, url, body, hueState, function(error, state) {
+			that.state_hue = hueState;
+			if (error) {
+				that.state_hue = false;
+				that.log("setHueState - ERROR: %s", error);
+				if (that.hueService) {
+					that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
+				}
+			}
+			callback(error, that.state_hue);
+		}.bind(this));
+	},
+
+	getHueState: function(callback, context) {
+		var that = this;
+		var url = this.hue_config_url;
+
+		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
+		//if context is statuspoll, then we need to request the actual value
+		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
+			callback(null, this.state_hue);
+			return;
+		}
+		if (!this.state_power) {
+				callback(null, false);
+				return;
+		}
+
+		this.httpRequest(url, "GET", this.need_authentication, function(error, response, responseBody) {
+			var tResp = that.state_hue;
+			var fctname = "getHueState";
+			if (error) {
+				that.log('%s - ERROR: %s', fctname, error.message);
+			} else {
+				if (responseBody) {
+					var responseBodyParsed;
+					try {
+						responseBodyParsed = JSON.parse(responseBody);
+						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
+							tResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true;
+							that.log.debug('%s - got answer %s', fctname, tResp);
+						} else {
+							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
+						}
+					} catch (e) {
+						that.log("%s - Got non JSON answer - not updating state: '%s'", fctname, responseBody);
+					}
+				}
+				if (that.state_hue != tResp) {
+					that.log('%s - state changed to: %s', fctname, tResp);
+					that.state_hue = tResp;
+				}
+			}
+			callback(null, that.state_hue);
+		}.bind(this));
+	},
+	
 	// Volume
 
 	setMutedStateLoop: function(nCount, url, body, mutedState, callback) {
@@ -1162,6 +1292,17 @@ HttpStatusAccessory.prototype = {
 				.on('set', this.setAmbilightBrightness.bind(this));
 
 			this.enabled_services.push(this.ambilightService);
+			
+			if (this.has_hue {
+			    this.hueService = new Service.Lightbulb(this.name + " Hue", '0e');
+			
+				this.hueService
+					.getCharacteristic(Characteristic.On)
+					.on('get', this.getHueState.bind(this))
+					.on('set', this.setHueState.bind(this));
+			
+				this.enabled_services.push(this.hueService);
+			}
 		}
 
 		return this.enabled_services;
