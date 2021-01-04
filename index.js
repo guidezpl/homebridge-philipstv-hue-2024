@@ -100,8 +100,9 @@ function HttpStatusAccessory(log, config, api) {
 
 	// HUE
 	this.hue_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/huelamp/power";
-	this.hue_on_body = JSON.stringify({"power":"On"}); // On
-	this.hue_off_body = JSON.stringify({"power":"Off"}); // Off
+	this.hue_on_body = JSON.stringify({"power":"On"});
+	this.hue_off_body = JSON.stringify({"power":"Off"});
+	this.hue_state_body = JSON.stringify({"nodes":[{"nodeid":420}]});
 
 	this.chromecast_url = this.has_chromecast ? ("http://" + this.ip_address + ":8080/apps/ChromeCast") : null;
 
@@ -734,7 +735,8 @@ HttpStatusAccessory.prototype = {
 
 	getHueState: function(callback, context) {
 		var that = this;
-		var url = this.hue_config_url;
+		var url = this.ambilight_status_url;
+		var body = this.hue_state_body;
 
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
 		//if context is statuspoll, then we need to request the actual value
@@ -743,11 +745,11 @@ HttpStatusAccessory.prototype = {
 			return;
 		}
 		if (!this.state_power) {
-				callback(null, false);
-				return;
+			callback(null, false);
+			return;
 		}
 
-		this.httpRequest(url, "GET", this.need_authentication, function(error, response, responseBody) {
+		this.httpRequest(url, body, "POST", this.need_authentication, function(error, response, responseBody) {
 			var tResp = that.state_hue;
 			var fctname = "getHueState";
 			if (error) {
@@ -757,8 +759,8 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							tResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true;
+						if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
+							tResp = responseBodyParsed.values[0].value.data.value;
 							that.log.debug('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
