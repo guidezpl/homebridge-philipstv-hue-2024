@@ -8,7 +8,7 @@ var exec = require("child_process").exec;
 module.exports = function(homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("homebridge-philipstv-enhanced", "PhilipsTV", HttpStatusAccessory);
+	homebridge.registerAccessory("homebridge-philipstv-hue", "PhilipsTV", HttpStatusAccessory);
 }
 
 function HttpStatusAccessory(log, config, api) {
