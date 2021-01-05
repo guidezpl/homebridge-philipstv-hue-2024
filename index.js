@@ -63,6 +63,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.state_power = true;
 	this.state_ambilight = false;
 	this.state_ambilightLevel = 0;
+	this.state_hue = false;
 	this.state_muted = false;
 	this.state_volume = 0;
 
