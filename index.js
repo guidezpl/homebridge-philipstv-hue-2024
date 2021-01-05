@@ -691,8 +691,7 @@ HttpStatusAccessory.prototype = {
 					callback(new Error("HTTP attempt failed"), hueState);
 				}
 			} else {
-				that.log('setHueStateLoop - succeeded2 - current state: %s', hueState);
-				that.log("setHueStateLoop response: %s: %s", response, responseBody);
+				that.log('setHueStateLoop - succeeded - current state: %s', hueState);
 				callback(null, hueState);
 			}
 		});
