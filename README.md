@@ -17,7 +17,7 @@ widget (including volume control by pressing the physical volume up/down
 buttons). Other modifications include ChromeCast-based power-on option, and
 support for an external "etherwake" executable.
 
-Modified by bmccruz to add support to Ambilight+Hue for Saphi TVs.
+Modified by [bmccruz](https://github.com/bmccruz) to add support to Ambilight+Hue for Saphi TVs.
 
 # Installation
 
