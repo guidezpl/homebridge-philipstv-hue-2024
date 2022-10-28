@@ -595,7 +595,7 @@ HttpStatusAccessory.prototype = {
 								that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
 							}
 						}
-					}, "statuspoll");
+					}, context);
 				}
 			}
 			callback(null, that.state_ambilight);
