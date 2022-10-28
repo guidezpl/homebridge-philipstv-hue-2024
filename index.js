@@ -783,10 +783,9 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						that.log('%s - got answer %s %s %s', fctname, length(responseBodyParsed.values), responseBodyParsed.values[0], responseBodyParsed.values[1]);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
-							tResp = responseBodyParsed.values[0].value.data.value;
-							that.log('%s - got answer %s %s', fctname, length(responseBodyParsed.values), responseBodyParsed.values[0]);
+						if (responseBodyParsed && responseBodyParsed.values[0].value.Nodeid) {
+							tResp = responseBodyParsed.values[0].value.Nodeid == 420;
+							that.log.debug('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
