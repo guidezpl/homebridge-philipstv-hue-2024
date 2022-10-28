@@ -20,7 +20,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.ip_address = config["ip_address"];
 	this.name = config["name"];
 	this.poll_status_interval = config["poll_status_interval"] || "0";
-	this.model_year = config["model_year"] || "2018";
+	this.model_year = config["model_year"] || "2020";
 	this.wol_url = config["wol_url"] || "";
 	this.wol_urls = config["wol_urls"] || [];
 	this.has_chromecast = config["has_chromecast"] || false;
@@ -111,9 +111,11 @@ function HttpStatusAccessory(log, config, api) {
 	// POLLING ENABLED?
 	this.interval = parseInt(this.poll_status_interval);
 	this.switchHandling = "check";
-	if (this.interval > 10 && this.interval < 100000) {
+	if (this.interval > 0 && this.interval < 100000) {
 		this.switchHandling = "poll";
 	}
+	this.log("Pooling enabled: %s " + this.switchHandling);
+
 
 	// STATUS POLLING
 	if (this.switchHandling == "poll") {
@@ -566,7 +568,7 @@ HttpStatusAccessory.prototype = {
 							tAmbilightResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true
 							that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
 						} else {
-							if (responseBodyParsed && responseBodyParsed.values[0].value.node_id == 420) {
+							if (responseBodyParsed && responseBodyParsed.values[0].value.Nodeid == 420) {
 								tAmbilightResp = true
 								tHueResp = true
 								that.log.debug('%s - got hue answer', fctname)
