@@ -435,7 +435,6 @@ HttpStatusAccessory.prototype = {
 		var that = this;
 		var url = this.power_url;
 
-
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_power);
 		//if context is statuspoll, then we need to request the actual value else we return the cached value
 		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
@@ -553,7 +552,8 @@ HttpStatusAccessory.prototype = {
 		}
 
 		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
-			var tResp = that.state_ambilight;
+			var tAmbilightResp = that.state_ambilight;
+			var tHueResp = false;
 			var fctname = "getAmbilightState";
 			if (error) {
 				that.log('%s - ERROR: %s', fctname, error.message);
@@ -563,8 +563,20 @@ HttpStatusAccessory.prototype = {
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							tResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true;
-							that.log.debug('%s - got answer %s', fctname, tResp);
+							if (responseBodyParsed.values[0].value.data.activenode_id == 110) {
+								tAmbilightResp = false
+								that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
+							} else {
+								if (responseBodyParsed.values[0].value.data.activenode_id == 120) {
+									tAmbilightResp = true
+									that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
+								} else {
+									if (responseBodyParsed.values[0].value.data.activenode_id == 420) {
+										tHueResp = true
+										that.log.debug('%s - got answer %s', fctname, tHueResp)
+									}
+								}
+							}
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
@@ -572,9 +584,22 @@ HttpStatusAccessory.prototype = {
 						that.log("%s - Got non JSON answer - not updating state: '%s'", fctname, responseBody);
 					}
 				}
-				if (that.state_ambilight != tResp) {
-					that.log('%s - state changed to: %s', fctname, tResp);
-					that.state_ambilight = tResp;
+				if (that.state_ambilight != tAmbilightResp) {
+					that.log('%s - state changed to: %s', fctname, tAmbilightResp);
+					that.state_ambilight = tAmbilightResp;
+				}
+
+				if (tHueResp) {
+					that.getHueState(function (error, response) {
+						if (error) {
+							that.log('%s - ERROR: %s', getHueState, error.message);
+						} else {
+							that.state_hue = responnse
+							if (that.hueService) {
+								that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
+							}
+						}
+					}, "statuspoll");
 				}
 			}
 			callback(null, that.state_ambilight);
