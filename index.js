@@ -594,7 +594,7 @@ HttpStatusAccessory.prototype = {
 						if (error) {
 							that.log('%s - ERROR: %s', getHueState, error.message);
 						} else {
-							that.state_hue = responnse
+							that.state_hue = response
 							if (that.hueService) {
 								that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
 							}
