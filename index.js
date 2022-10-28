@@ -587,8 +587,8 @@ HttpStatusAccessory.prototype = {
 
 				if (tHueResp) {
 					that.getHueState(function (error, response) {
-						if (error) {
-							that.log('%s - ERROR: %s', getHueState, error.message);
+						if (error || response == undefined) {
+							that.log('%s - ERROR: %s', "getHueState", error.message);
 						} else {
 							that.state_hue = response
 							if (that.hueService) {
