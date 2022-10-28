@@ -563,22 +563,16 @@ HttpStatusAccessory.prototype = {
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							if (responseBodyParsed.values[0].value.data.activenode_id == 110) {
-								tAmbilightResp = false
-								that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
-							} else {
-								if (responseBodyParsed.values[0].value.data.activenode_id == 120) {
-									tAmbilightResp = true
-									that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
-								} else {
-									if (responseBodyParsed.values[0].value.data.activenode_id == 420) {
-										tHueResp = true
-										that.log.debug('%s - got answer %s', fctname, tHueResp)
-									}
-								}
-							}
+							tAmbilightResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true
+							that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
 						} else {
-							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
+							if (responseBodyParsed && responseBodyParsed.values[0].value.node_id == 420) {
+								tAmbilightResp = true
+								tHueResp = true
+								that.log.debug('%s - got hue answer', fctname)
+							} else {
+								that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
+							}
 						}
 					} catch (e) {
 						that.log("%s - Got non JSON answer - not updating state: '%s'", fctname, responseBody);
