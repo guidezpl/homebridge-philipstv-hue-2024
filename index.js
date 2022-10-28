@@ -783,6 +783,7 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
+						that.log('%s - got answer %s', fctname, responseBodyParsed.values[0]);
 						if (responseBodyParsed && responseBodyParsed.values[0].value.Nodeid) {
 							tResp = responseBodyParsed.values[0].value.Nodeid == 420;
 							that.log.debug('%s - got answer %s', fctname, tResp);
