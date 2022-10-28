@@ -759,7 +759,7 @@ HttpStatusAccessory.prototype = {
 
 	getHueState: function (callback, context) {
 		var that = this;
-		var url = this.ambilight_status_url;
+		var url = this.hue_config_url;
 		var body = this.hue_state_body;
 
 		this.log("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
