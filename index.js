@@ -114,7 +114,7 @@ function HttpStatusAccessory(log, config, api) {
 	if (this.interval > 0 && this.interval < 100000) {
 		this.switchHandling = "poll";
 	}
-	this.log("Pooling enabled: %s " + this.switchHandling);
+	this.log("Pooling enabled: %s %i", this.switchHandling, this.interval);
 
 
 	// STATUS POLLING
