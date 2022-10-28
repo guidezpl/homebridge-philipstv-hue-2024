@@ -762,7 +762,7 @@ HttpStatusAccessory.prototype = {
 		var url = this.ambilight_status_url;
 		var body = this.hue_state_body;
 
-		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
+		this.log("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
 		//if context is statuspoll, then we need to request the actual value
 		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
 			callback(null, this.state_hue);
@@ -785,7 +785,7 @@ HttpStatusAccessory.prototype = {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
 							tResp = responseBodyParsed.values[0].value.data.value;
-							that.log.debug('%s - got answer %s', fctname, tResp);
+							that.log('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
