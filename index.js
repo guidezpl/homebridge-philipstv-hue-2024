@@ -536,7 +536,7 @@ HttpStatusAccessory.prototype = {
 
 	getAmbilightState: function (callback, context) {
 		var that = this;
-		var url = this.ambilight_state_url;
+		var url = this.ambilight_status_url;
 		var body = this.ambilight_mode_body;
 
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilight);
@@ -561,8 +561,8 @@ HttpStatusAccessory.prototype = {
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							tAmbilightResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true
-							that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
+							tResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true;
+							that.log.debug('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
