@@ -738,7 +738,7 @@ HttpStatusAccessory.prototype = {
 		var that = this;
 		var url = this.hue_power_url;
 
-		this.log("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
+		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
 		//if context is statuspoll, then we need to request the actual value
 		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
 			callback(null, this.state_hue);
