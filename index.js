@@ -30,7 +30,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.model_year_nr = parseInt(this.model_year);
 	this.set_attempt = 0;
 	this.has_ambilight = config["has_ambilight"] || false;
-	this.has_ambilight_brightness = config["has_ambilight_brightness"] || false;
+	// this.has_ambilight_brightness = config["has_ambilight_brightness"] || false;
 	this.has_hue = config["has_hue"] || false;
 	this.has_ssl = config["has_ssl"] || false;
 	this.has_input_selector = !(config["hide_input_selector"] || false);
@@ -63,7 +63,7 @@ function HttpStatusAccessory(log, config, api) {
 
 	this.state_power = true;
 	this.state_ambilight = false;
-	this.state_ambilightLevel = 0;
+	// this.state_ambilightLevel = 0;
 	this.state_hue = false;
 	this.state_muted = false;
 	this.state_volume = 0;
@@ -92,19 +92,14 @@ function HttpStatusAccessory(log, config, api) {
 	this.input_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/input/key";
 
 	// AMBILIGHT
-	this.ambilight_status_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/current";
-	this.ambilight_brightness_body = JSON.stringify({ "nodes": [{ "nodeid": 200 }] });
-	this.ambilight_mode_body = JSON.stringify({ "nodes": [{ "nodeid": 100 }] });
+	this.ambilight_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/ambilight/power";
+	this.ambilight_power_on_body = JSON.stringify({ "power": "On" });
+	this.ambilight_power_off_body = JSON.stringify({ "power": "On" });
 
-	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/update";
-	this.ambilight_power_on_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 120 } } }); // Follow Video 
-	this.ambilight_power_off_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 110 } } }); // Off
-
-	// HUE (SHARE AMBILIGHT_CONFIG_URL)
-	this.hue_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/HueLamp/power";
+	// HUE
+	this.hue_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/HueLamp/power";
 	this.hue_on_body = JSON.stringify({ "power": "On" });
-	this.hue_off_body = JSON.stringify({ "power": "Off" });
-	this.hue_state_body = JSON.stringify({ "nodes": [{ "nodeid": 420 }] });
+	this.hue_off_body = JSON.stringify({ "power": "On" });
 
 	this.chromecast_url = this.has_chromecast ? ("http://" + this.ip_address + ":8080/apps/ChromeCast") : null;
 
@@ -114,7 +109,7 @@ function HttpStatusAccessory(log, config, api) {
 	if (this.interval > 0 && this.interval < 100000) {
 		this.switchHandling = "poll";
 	}
-	this.log("Pooling enabled: %s %i", this.switchHandling, this.interval);
+	this.log.debug("Pooling enabled: %s %i", this.switchHandling, this.interval);
 
 
 	// STATUS POLLING
@@ -188,49 +183,49 @@ function HttpStatusAccessory(log, config, api) {
 				}
 			});
 
-			if (this.has_ambilight_brightness) {
-				var statusemitter_ambilight_brightness = pollingtoevent(function (done) {
-					that.getAmbilightBrightness(function (error, response) {
-						done(error, response, that.set_attempt);
-					}, "statuspoll");
-				}, {
-					longpolling: true,
-					interval: that.interval * 1000,
-					longpollEventName: "statuspoll_ambilight_brightness"
-				});
+			// if (this.has_ambilight_brightness) {
+			// 	var statusemitter_ambilight_brightness = pollingtoevent(function (done) {
+			// 		that.getAmbilightBrightness(function (error, response) {
+			// 			done(error, response, that.set_attempt);
+			// 		}, "statuspoll");
+			// 	}, {
+			// 		longpolling: true,
+			// 		interval: that.interval * 1000,
+			// 		longpollEventName: "statuspoll_ambilight_brightness"
+			// 	});
 
-				statusemitter_ambilight_brightness.on("statuspoll_ambilight_brightness", function (data) {
-					that.state_ambilight_brightness = data;
-					if (that.ambilightService) {
-						that.ambilightService.getCharacteristic(Characteristic.Brightness).setValue(that.state_ambilight_brightness, null, "statuspoll");
-					}
-				});
-			}
-
-			if (this.has_hue) {
-				var statusemitter_hue = pollingtoevent(function (done) {
-					that.getHueState(function (error, response) {
-						done(error, response, that.set_attempt);
-					}, "statuspoll");
-				}, {
-					longpolling: true,
-					interval: that.interval * 1000,
-					longpollEventName: "statuspoll_hue"
-				});
-
-				statusemitter_hue.on("statuspoll_hue", function (data) {
-					that.state_hue = data;
-					if (that.hueService) {
-						that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
-					}
-				});
-			}
-
-
+			// 	statusemitter_ambilight_brightness.on("statuspoll_ambilight_brightness", function (data) {
+			// 		that.state_ambilight_brightness = data;
+			// 		if (that.ambilightService) {
+			// 			that.ambilightService.getCharacteristic(Characteristic.Brightness).setValue(that.state_ambilight_brightness, null, "statuspoll");
+			// 		}
+			// 	});
 		}
-	}
 
-	this.prepareServices();
+		if (this.has_hue) {
+			var statusemitter_hue = pollingtoevent(function (done) {
+				that.getHueState(function (error, response) {
+					done(error, response, that.set_attempt);
+				}, "statuspoll");
+			}, {
+				longpolling: true,
+				interval: that.interval * 1000,
+				longpollEventName: "statuspoll_hue"
+			});
+
+			statusemitter_hue.on("statuspoll_hue", function (data) {
+				that.state_hue = data;
+				if (that.hueService) {
+					that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
+				}
+			});
+		}
+
+
+	}
+}
+
+this.prepareServices();
 }
 
 /////////////////////////////
@@ -460,7 +455,7 @@ HttpStatusAccessory.prototype = {
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed && responseBodyParsed.powerstate) {
-							tResp = (responseBodyParsed.powerstate == "On") ? 1 : 0;
+							tResp = (responseBodyParsed.powerstate == "On") ? true : false;
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
@@ -515,11 +510,11 @@ HttpStatusAccessory.prototype = {
 		this.set_attempt = this.set_attempt + 1;
 
 		if (ambilightState) {
-			url = this.ambilight_config_url;
+			url = this.ambilight_url;
 			body = this.ambilight_power_on_body;
 			this.log("setAmbilightState - setting state to on");
 		} else {
-			url = this.ambilight_config_url;
+			url = this.ambilight_url;
 			body = this.ambilight_power_off_body;
 			this.log("setAmbilightState - setting state to off");
 		}
@@ -539,8 +534,7 @@ HttpStatusAccessory.prototype = {
 
 	getAmbilightState: function (callback, context) {
 		var that = this;
-		var url = this.ambilight_status_url;
-		var body = this.ambilight_mode_body;
+		var url = this.ambilight_url;
 
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilight);
 		//if context is statuspoll, then we need to request the actual value
@@ -554,8 +548,7 @@ HttpStatusAccessory.prototype = {
 		}
 
 		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
-			var tAmbilightResp = that.state_ambilight;
-			var tHueResp = false;
+			var tResp = that.state_ambilight;
 			var fctname = "getAmbilightState";
 			if (error) {
 				that.log('%s - ERROR: %s', fctname, error.message);
@@ -564,138 +557,118 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							tAmbilightResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true
-							that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
+						if (responseBodyParsed && responseBodyParsed.power) {
+							tResp = (responseBodyParsed.power == "On") ? true : false;
 						} else {
-							if (responseBodyParsed && responseBodyParsed.values[0].value.Nodeid == 420) {
-								tAmbilightResp = true
-								tHueResp = true
-								that.log.debug('%s - got hue answer', fctname)
-							} else {
-								that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
-							}
+							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
 					} catch (e) {
 						that.log("%s - Got non JSON answer - not updating state: '%s'", fctname, responseBody);
 					}
 				}
-				if (that.state_ambilight != tAmbilightResp) {
-					that.log('%s - state changed to: %s', fctname, tAmbilightResp);
-					that.state_ambilight = tAmbilightResp;
-				}
-
-				if (tHueResp) {
-					that.getHueState(function (error, response) {
-						if (error || response == undefined) {
-							that.log('%s - ERROR: %s', "getHueState", error.message);
-						} else {
-							that.state_hue = response
-							if (that.hueService) {
-								that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
-							}
-						}
-					}, context);
+				if (that.state_ambilight != tResp) {
+					that.log('%s - state changed to: %s', fctname, tResp);
+					that.state_ambilight = tResp;
 				}
 			}
 			callback(null, that.state_ambilight);
 		}.bind(this));
 	},
 
-	setAmbilightBrightnessLoop: function (nCount, url, body, ambilightLevel, callback) {
-		var that = this;
+	// setAmbilightBrightnessLoop: function (nCount, url, body, ambilightLevel, callback) {
+	// 	var that = this;
 
-		that.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
-			if (error) {
-				if (nCount > 0) {
-					that.log('setAmbilightStateLoop - attempt, attempt id: ', nCount - 1);
-					that.setAmbilightBrightnessLoop(nCount - 1, url, body, ambilightLevel, function (err, state) {
-						callback(err, state);
-					});
-				} else {
-					that.log('setAmbilightBrightnessLoop - failed: %s', error.message);
-					ambilightLevel = false;
-					callback(new Error("HTTP attempt failed"), ambilightLevel);
-				}
-			} else {
-				that.log('setAmbilightBrightnessLoop - succeeded - current state: %s', ambilightLevel);
-				callback(null, ambilightLevel);
-			}
-		});
-	},
+	// 	that.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
+	// 		if (error) {
+	// 			if (nCount > 0) {
+	// 				that.log('setAmbilightStateLoop - attempt, attempt id: ', nCount - 1);
+	// 				that.setAmbilightBrightnessLoop(nCount - 1, url, body, ambilightLevel, function (err, state) {
+	// 					callback(err, state);
+	// 				});
+	// 			} else {
+	// 				that.log('setAmbilightBrightnessLoop - failed: %s', error.message);
+	// 				ambilightLevel = false;
+	// 				callback(new Error("HTTP attempt failed"), ambilightLevel);
+	// 			}
+	// 		} else {
+	// 			that.log('setAmbilightBrightnessLoop - succeeded - current state: %s', ambilightLevel);
+	// 			callback(null, ambilightLevel);
+	// 		}
+	// 	});
+	// },
 
-	setAmbilightBrightness: function (ambilightLevel, callback, context) {
-		var TV_Adjusted_ambilightLevel = Math.round(ambilightLevel / 10);
-		var url = this.ambilight_config_url;
-		var body = JSON.stringify({ "value": { "Nodeid": 200, "Controllable": true, "Available": true, "data": { "value": TV_Adjusted_ambilightLevel } } });
-		var that = this;
+	// setAmbilightBrightness: function (ambilightLevel, callback, context) {
+	// 	var TV_Adjusted_ambilightLevel = Math.round(ambilightLevel / 10);
+	// 	var url = this.ambilight_url;
+	// 	var body = JSON.stringify({ "value": { "Nodeid": 200, "Controllable": true, "Available": true, "data": { "value": TV_Adjusted_ambilightLevel } } });
+	// 	var that = this;
 
-		this.log.debug("Entering setAmbilightBrightness with context: %s and requested value: %s", context, ambilightLevel);
-		//if context is statuspoll, then we need to ensure that we do not set the actual value
-		if (context && context == "statuspoll") {
-			callback(null, ambilightLevel);
-			return;
-		}
+	// 	this.log.debug("Entering setAmbilightBrightness with context: %s and requested value: %s", context, ambilightLevel);
+	// 	//if context is statuspoll, then we need to ensure that we do not set the actual value
+	// 	if (context && context == "statuspoll") {
+	// 		callback(null, ambilightLevel);
+	// 		return;
+	// 	}
 
-		this.set_attempt = this.set_attempt + 1;
+	// 	this.set_attempt = this.set_attempt + 1;
 
-		that.setAmbilightBrightnessLoop(0, url, body, ambilightLevel, function (error, state) {
-			that.state_ambilightLevel = ambilightLevel;
-			if (error) {
-				that.state_ambilightLevel = false;
-				that.log("setAmbilightBrightness - ERROR: %s", error);
-				if (that.ambilightService) {
-					that.ambilightService.getCharacteristic(Characteristic.On).setValue(that.state_ambilightLevel, null, "statuspoll");
-				}
-			}
-			callback(error, that.state_ambilightLevel);
-		}.bind(this));
-	},
+	// 	that.setAmbilightBrightnessLoop(0, url, body, ambilightLevel, function (error, state) {
+	// 		that.state_ambilightLevel = ambilightLevel;
+	// 		if (error) {
+	// 			that.state_ambilightLevel = false;
+	// 			that.log("setAmbilightBrightness - ERROR: %s", error);
+	// 			if (that.ambilightService) {
+	// 				that.ambilightService.getCharacteristic(Characteristic.On).setValue(that.state_ambilightLevel, null, "statuspoll");
+	// 			}
+	// 		}
+	// 		callback(error, that.state_ambilightLevel);
+	// 	}.bind(this));
+	// },
 
-	getAmbilightBrightness: function (callback, context) {
-		var that = this;
-		var url = this.ambilight_status_url;
-		var body = this.ambilight_brightness_body;
+	// getAmbilightBrightness: function (callback, context) {
+	// 	var that = this;
+	// 	var url = this.ambilight_status_url;
+	// 	var body = this.ambilight_brightness_body;
 
-		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilightLevel);
-		//if context is statuspoll, then we need to request the actual value
-		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
-			callback(null, this.state_ambilightLevel);
-			return;
-		}
-		if (!this.state_power) {
-			callback(null, 0);
-			return;
-		}
+	// 	this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilightLevel);
+	// 	//if context is statuspoll, then we need to request the actual value
+	// 	if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
+	// 		callback(null, this.state_ambilightLevel);
+	// 		return;
+	// 	}
+	// 	if (!this.state_power) {
+	// 		callback(null, 0);
+	// 		return;
+	// 	}
 
-		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
-			var tResp = that.state_ambilightLevel;
-			var fctname = "getAmbilightBrightness";
-			if (error) {
-				that.log('%s - ERROR: %s', fctname, error.message);
-			} else {
-				if (responseBody) {
-					var responseBodyParsed;
-					try {
-						responseBodyParsed = JSON.parse(responseBody);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
-							tResp = 10 * responseBodyParsed.values[0].value.data.value;
-							that.log.debug('%s - got answer %s', fctname, tResp);
-						} else {
-							that.log("%s - Could not parse message: '%s', not updating level", fctname, responseBody);
-						}
-					} catch (e) {
-						that.log("%s - Got non JSON answer - not updating level: '%s'", fctname, responseBody);
-					}
-				}
-				if (that.state_ambilightLevel != tResp) {
-					that.log('%s - Level changed to: %s', fctname, tResp);
-					that.state_ambilightLevel = tResp;
-				}
-			}
-			callback(null, that.state_ambilightLevel);
-		}.bind(this));
-	},
+	// 	this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
+	// 		var tResp = that.state_ambilightLevel;
+	// 		var fctname = "getAmbilightBrightness";
+	// 		if (error) {
+	// 			that.log('%s - ERROR: %s', fctname, error.message);
+	// 		} else {
+	// 			if (responseBody) {
+	// 				var responseBodyParsed;
+	// 				try {
+	// 					responseBodyParsed = JSON.parse(responseBody);
+	// 					if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
+	// 						tResp = 10 * responseBodyParsed.values[0].value.data.value;
+	// 						that.log.debug('%s - got answer %s', fctname, tResp);
+	// 					} else {
+	// 						that.log("%s - Could not parse message: '%s', not updating level", fctname, responseBody);
+	// 					}
+	// 				} catch (e) {
+	// 					that.log("%s - Got non JSON answer - not updating level: '%s'", fctname, responseBody);
+	// 				}
+	// 			}
+	// 			if (that.state_ambilightLevel != tResp) {
+	// 				that.log('%s - Level changed to: %s', fctname, tResp);
+	// 				that.state_ambilightLevel = tResp;
+	// 			}
+	// 		}
+	// 		callback(null, that.state_ambilightLevel);
+	// 	}.bind(this));
+	// },
 
 	// HUE FUNCTIONS
 	setHueStateLoop: function (nCount, url, body, hueState, callback) {
@@ -735,11 +708,11 @@ HttpStatusAccessory.prototype = {
 		this.set_attempt = this.set_attempt + 1;
 
 		if (hueState) {
-			url = this.hue_config_url;
+			url = this.hue_url;
 			body = this.hue_on_body;
 			this.log("setHueState - setting state to on");
 		} else {
-			url = this.hue_config_url;
+			url = this.hue_url;
 			body = this.hue_off_body;
 			this.log("setHueState - setting state to off");
 		}
@@ -759,8 +732,7 @@ HttpStatusAccessory.prototype = {
 
 	getHueState: function (callback, context) {
 		var that = this;
-		var url = this.hue_config_url;
-		var body = this.hue_state_body;
+		var url = this.hue_url;
 
 		this.log("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
 		//if context is statuspoll, then we need to request the actual value
@@ -773,7 +745,7 @@ HttpStatusAccessory.prototype = {
 			return;
 		}
 
-		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
+		this.httpRequest(url, body, "GET", this.need_authentication, function (error, response, responseBody) {
 			var tResp = that.state_hue;
 			var fctname = "getHueState";
 			if (error) {
@@ -783,10 +755,8 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						that.log('%s - got answer %s', fctname, responseBody);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.Nodeid) {
-							tResp = responseBodyParsed.values[0].value.Nodeid == 420;
-							that.log.debug('%s - got answer %s', fctname, tResp);
+						if (responseBodyParsed && responseBodyParsed.power) {
+							tResp = (responseBodyParsed.power == "On") ? true : false;
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
@@ -1313,12 +1283,12 @@ HttpStatusAccessory.prototype = {
 				.on('get', this.getAmbilightState.bind(this))
 				.on('set', this.setAmbilightState.bind(this));
 
-			if (this.has_ambilight_brightness) {
-				this.ambilightService
-					.getCharacteristic(Characteristic.Brightness)
-					.on('get', this.getAmbilightBrightness.bind(this))
-					.on('set', this.setAmbilightBrightness.bind(this));
-			}
+			// if (this.has_ambilight_brightness) {
+			// 	this.ambilightService
+			// 		.getCharacteristic(Characteristic.Brightness)
+			// 		.on('get', this.getAmbilightBrightness.bind(this))
+			// 		.on('set', this.setAmbilightBrightness.bind(this));
+			// }
 
 			this.enabled_services.push(this.ambilightService);
 
