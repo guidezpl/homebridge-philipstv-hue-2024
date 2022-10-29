@@ -92,7 +92,7 @@ function HttpStatusAccessory(log, config, api) {
 	this.input_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/input/key";
 
 	// AMBILIGHT
-	this.ambilight_state_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/current";
+	this.ambilight_status_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/current";
 	// this.ambilight_brightness_body = JSON.stringify({ "nodes": [{ "nodeid": 200 }] });
 	this.ambilight_mode_body = JSON.stringify({ "nodes": [{ "nodeid": 100 }] });
 
