@@ -92,12 +92,14 @@ function HttpStatusAccessory(log, config, api) {
 	this.input_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/input/key";
 
 	// AMBILIGHT
-	this.ambilight_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/ambilight/power";
-	this.ambilight_power_on_body = JSON.stringify({ "power": "On" });
-	this.ambilight_power_off_body = JSON.stringify({ "power": "On" });
+	this.ambilight_power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/ambilight/power";
+
+	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/update";
+	this.ambilight_power_on_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 120 } } }); // Follow Video 
+	this.ambilight_power_off_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 110 } } }); // Off
 
 	// HUE
-	this.hue_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/HueLamp/power";
+	this.hue_power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/HueLamp/power";
 	this.hue_on_body = JSON.stringify({ "power": "On" });
 	this.hue_off_body = JSON.stringify({ "power": "On" });
 
@@ -508,11 +510,11 @@ HttpStatusAccessory.prototype = {
 		this.set_attempt = this.set_attempt + 1;
 
 		if (ambilightState) {
-			url = this.ambilight_url;
+			url = this.ambilight_config_url;
 			body = this.ambilight_power_on_body;
 			this.log("setAmbilightState - setting state to on");
 		} else {
-			url = this.ambilight_url;
+			url = this.ambilight_config_url;
 			body = this.ambilight_power_off_body;
 			this.log("setAmbilightState - setting state to off");
 		}
@@ -532,7 +534,7 @@ HttpStatusAccessory.prototype = {
 
 	getAmbilightState: function (callback, context) {
 		var that = this;
-		var url = this.ambilight_url;
+		var url = this.ambilight_power_url;
 
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilight);
 		//if context is statuspoll, then we need to request the actual value
@@ -706,11 +708,11 @@ HttpStatusAccessory.prototype = {
 		this.set_attempt = this.set_attempt + 1;
 
 		if (hueState) {
-			url = this.hue_url;
+			url = this.hue_power_url;
 			body = this.hue_on_body;
 			this.log("setHueState - setting state to on");
 		} else {
-			url = this.hue_url;
+			url = this.hue_power_url;
 			body = this.hue_off_body;
 			this.log("setHueState - setting state to off");
 		}
@@ -730,9 +732,9 @@ HttpStatusAccessory.prototype = {
 
 	getHueState: function (callback, context) {
 		var that = this;
-		var url = this.hue_url;
+		var url = this.hue_power_url;
 
-		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
+		this.log("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_hue);
 		//if context is statuspoll, then we need to request the actual value
 		if ((!context || context != "statuspoll") && this.switchHandling == "poll") {
 			callback(null, this.state_hue);
