@@ -200,32 +200,30 @@ function HttpStatusAccessory(log, config, api) {
 			// 			that.ambilightService.getCharacteristic(Characteristic.Brightness).setValue(that.state_ambilight_brightness, null, "statuspoll");
 			// 		}
 			// 	});
+			// }
+
+			if (this.has_hue) {
+				var statusemitter_hue = pollingtoevent(function (done) {
+					that.getHueState(function (error, response) {
+						done(error, response, that.set_attempt);
+					}, "statuspoll");
+				}, {
+					longpolling: true,
+					interval: that.interval * 1000,
+					longpollEventName: "statuspoll_hue"
+				});
+
+				statusemitter_hue.on("statuspoll_hue", function (data) {
+					that.state_hue = data;
+					if (that.hueService) {
+						that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
+					}
+				});
+			}
 		}
-
-		if (this.has_hue) {
-			var statusemitter_hue = pollingtoevent(function (done) {
-				that.getHueState(function (error, response) {
-					done(error, response, that.set_attempt);
-				}, "statuspoll");
-			}, {
-				longpolling: true,
-				interval: that.interval * 1000,
-				longpollEventName: "statuspoll_hue"
-			});
-
-			statusemitter_hue.on("statuspoll_hue", function (data) {
-				that.state_hue = data;
-				if (that.hueService) {
-					that.hueService.getCharacteristic(Characteristic.On).setValue(that.state_hue, null, "statuspoll");
-				}
-			});
-		}
-
-
 	}
-}
 
-this.prepareServices();
+	this.prepareServices();
 }
 
 /////////////////////////////
