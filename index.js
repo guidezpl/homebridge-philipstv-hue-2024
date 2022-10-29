@@ -545,7 +545,7 @@ HttpStatusAccessory.prototype = {
 			return;
 		}
 
-		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
+		this.httpRequest(url, "", "GET", this.need_authentication, function (error, response, responseBody) {
 			var tResp = that.state_ambilight;
 			var fctname = "getAmbilightState";
 			if (error) {
@@ -743,7 +743,7 @@ HttpStatusAccessory.prototype = {
 			return;
 		}
 
-		this.httpRequest(url, body, "GET", this.need_authentication, function (error, response, responseBody) {
+		this.httpRequest(url, "", "GET", this.need_authentication, function (error, response, responseBody) {
 			var tResp = that.state_hue;
 			var fctname = "getHueState";
 			if (error) {
