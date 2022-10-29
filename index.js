@@ -92,7 +92,9 @@ function HttpStatusAccessory(log, config, api) {
 	this.input_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/input/key";
 
 	// AMBILIGHT
-	this.ambilight_power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/ambilight/power";
+	this.ambilight_state_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/current";
+	// this.ambilight_brightness_body = JSON.stringify({ "nodes": [{ "nodeid": 200 }] });
+	this.ambilight_mode_body = JSON.stringify({ "nodes": [{ "nodeid": 100 }] });
 
 	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/update";
 	this.ambilight_power_on_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 120 } } }); // Follow Video 
@@ -534,7 +536,8 @@ HttpStatusAccessory.prototype = {
 
 	getAmbilightState: function (callback, context) {
 		var that = this;
-		var url = this.ambilight_power_url;
+		var url = this.ambilight_state_url;
+		var body = this.ambilight_mode_body;
 
 		this.log.debug("Entering %s with context: %s and current value: %s", arguments.callee.name, context, this.state_ambilight);
 		//if context is statuspoll, then we need to request the actual value
@@ -547,7 +550,7 @@ HttpStatusAccessory.prototype = {
 			return;
 		}
 
-		this.httpRequest(url, "", "GET", this.need_authentication, function (error, response, responseBody) {
+		this.httpRequest(url, body, "POST", this.need_authentication, function (error, response, responseBody) {
 			var tResp = that.state_ambilight;
 			var fctname = "getAmbilightState";
 			if (error) {
@@ -557,8 +560,9 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						if (responseBodyParsed && responseBodyParsed.power) {
-							tResp = (responseBodyParsed.power == "On") ? true : false;
+						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
+							tAmbilightResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true
+							that.log.debug('%s - got answer %s', fctname, tAmbilightResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
 						}
