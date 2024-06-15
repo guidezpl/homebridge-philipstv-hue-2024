@@ -8,7 +8,7 @@ var exec = require("child_process").exec;
 module.exports = function (homebridge) {
 	Service = homebridge.hap.Service;
 	Characteristic = homebridge.hap.Characteristic;
-	homebridge.registerAccessory("homebridge-philipstv-hue-2020", "PhilipsTV", HttpStatusAccessory);
+	homebridge.registerAccessory("homebridge-philipstv-hue-2024", "PhilipsTV", HttpStatusAccessory);
 }
 
 function HttpStatusAccessory(log, config, api) {
@@ -96,9 +96,9 @@ function HttpStatusAccessory(log, config, api) {
 	// this.ambilight_brightness_body = JSON.stringify({ "nodes": [{ "nodeid": 200 }] });
 	this.ambilight_mode_body = JSON.stringify({ "nodes": [{ "nodeid": 100 }] });
 
-	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/menuitems/settings/update";
-	this.ambilight_power_on_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 120 } } }); // Follow Video 
-	this.ambilight_power_off_body = JSON.stringify({ "value": { "Nodeid": 100, "Controllable": true, "Available": true, "data": { "activenode_id": 110 } } }); // Off
+	this.ambilight_config_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/ambilight/power";
+	this.ambilight_power_on_body = JSON.stringify({ "power": "On" }); // Follow Video
+	this.ambilight_power_off_body = JSON.stringify({ "power": "Off" }); // Off
 
 	// HUE
 	this.hue_power_url = this.protocol + "://" + this.ip_address + ":" + this.portno + "/" + this.api_version + "/HueLamp/power";
@@ -560,8 +560,8 @@ HttpStatusAccessory.prototype = {
 					var responseBodyParsed;
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
-						if (responseBodyParsed && responseBodyParsed.values[0].value.data.activenode_id) {
-							tResp = (responseBodyParsed.values[0].value.data.activenode_id == 110) ? false : true;
+						if (responseBodyParsed && responseBodyParsed.values[0].value.data) {
+							tResp = (responseBodyParsed.values[0].value.data?.activenode_id == 110) ? false : true;
 							that.log.debug('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating state", fctname, responseBody);
@@ -961,7 +961,7 @@ HttpStatusAccessory.prototype = {
 					try {
 						responseBodyParsed = JSON.parse(responseBody);
 						if (responseBodyParsed) {
-							tResp = Math.round(4 * responseBodyParsed.current);
+							tResp = Math.round(responseBodyParsed.current);
 							that.log.debug('%s - got answer %s', fctname, tResp);
 						} else {
 							that.log("%s - Could not parse message: '%s', not updating level", fctname, responseBody);
